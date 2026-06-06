@@ -33,15 +33,15 @@ def calculate_hedge(
 
     label = f" {ticker}" if ticker else ""
 
-    if shares_needed > 5:
-        signal = "BUY"
-        signal_detail = f"買入 {shares_needed} 股{label} 對沖"
-    elif shares_needed < -5:
-        signal = "SELL"
-        signal_detail = f"賣出 {abs(shares_needed)} 股{label} 對沖"
-    else:
+    if not rebalance_needed:
         signal = "HOLD"
         signal_detail = "Delta 中性，維持現有部位"
+    elif shares_needed > 0:
+        signal = "BUY"
+        signal_detail = f"買入 {shares_needed} 股{label} 對沖"
+    else:
+        signal = "SELL"
+        signal_detail = f"賣出 {abs(shares_needed)} 股{label} 對沖"
 
     return HedgeState(
         position_delta=portfolio_position_delta,

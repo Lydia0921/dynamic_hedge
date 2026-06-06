@@ -3,9 +3,14 @@ __pycache__/
 *.pyo
 .claude/
 trades/
-trades.csv
+reports/
 .env
 .DS_Store
 *.egg-info/
 dist/
 build/
+
+# Personal notes — do not push
+trading_diary.md
+trading_diary_review.md
+策略研究_賣出買權避險.md

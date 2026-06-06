@@ -19,6 +19,9 @@ if "ticker" not in st.session_state:
     saved_shares, saved_cash = get_current_state("PLTR")
     st.session_state.hedge_shares = saved_shares
     st.session_state.cash_balance = saved_cash
+    st.session_state.hedge_shares_input = saved_shares
+    st.session_state.cash_balance_input = saved_cash
+    st.session_state.account_input_ticker = "PLTR"
 
 # ──────────────────────────────────────────────
 # Sidebar — Global Ticker Selector
@@ -35,6 +38,9 @@ if st.sidebar.button("📡 載入標的"):
         saved_shares, saved_cash = get_current_state(ticker_input.upper())
         st.session_state.hedge_shares = saved_shares
         st.session_state.cash_balance = saved_cash
+        st.session_state.hedge_shares_input = saved_shares
+        st.session_state.cash_balance_input = saved_cash
+        st.session_state.account_input_ticker = ticker_input.upper()
         st.sidebar.success(f"✅ 已載入 {ticker_input.upper()}")
     else:
         st.session_state.ticker_valid = False

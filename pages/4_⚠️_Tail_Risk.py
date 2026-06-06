@@ -10,10 +10,15 @@ from greeks import implied_volatility, bs_price
 from volatility_model import calc_model_iv, analyze_chain_iv, calc_overpriced_ratio
 from datetime import date
 
-# ── Guard ──
+# ── Guard: auto-init if navigated directly ──
 if "ticker" not in st.session_state:
-    st.warning("請先從首頁載入標的。")
-    st.stop()
+    from trade_log import get_current_state, load_positions
+    st.session_state.ticker = "PLTR"
+    st.session_state.ticker_valid = True
+    st.session_state.positions = load_positions("PLTR")
+    saved_shares, saved_cash = get_current_state("PLTR")
+    st.session_state.hedge_shares = saved_shares
+    st.session_state.cash_balance = saved_cash
 
 ticker = st.session_state.ticker
 

@@ -16,10 +16,32 @@ from hedging import calculate_hedge
 from trade_log import log_trade, read_trades, save_positions
 from macro import get_macro_summary
 
-# ── Guard ──
+# ── Guard: auto-init if navigated directly ──
 if "ticker" not in st.session_state:
-    st.warning("請先從首頁載入標的。")
-    st.stop()
+    from trade_log import get_current_state, load_positions
+    st.session_state.ticker = "PLTR"
+    st.session_state.ticker_valid = True
+    st.session_state.positions = load_positions("PLTR")
+    saved_shares, saved_cash = get_current_state("PLTR")
+    st.session_state.hedge_shares = saved_shares
+    st.session_state.cash_balance = saved_cash
+    st.session_state.hedge_shares_input = saved_shares
+    st.session_state.cash_balance_input = saved_cash
+    st.session_state.account_input_ticker = "PLTR"
+
+if st.session_state.get("account_input_ticker") != st.session_state.ticker:
+    from trade_log import get_current_state
+    saved_shares, saved_cash = get_current_state(st.session_state.ticker)
+    st.session_state.hedge_shares = saved_shares
+    st.session_state.cash_balance = saved_cash
+    st.session_state.hedge_shares_input = saved_shares
+    st.session_state.cash_balance_input = saved_cash
+    st.session_state.account_input_ticker = st.session_state.ticker
+
+if "hedge_shares_input" not in st.session_state:
+    st.session_state.hedge_shares_input = int(st.session_state.get("hedge_shares", 0))
+if "cash_balance_input" not in st.session_state:
+    st.session_state.cash_balance_input = float(st.session_state.get("cash_balance", 0.0))
 
 ticker = st.session_state.ticker
 positions = st.session_state.positions
@@ -76,15 +98,17 @@ if st.session_state.ticker_valid and ticker:
     # ── Hedge shares & cash ──
     st.sidebar.divider()
     st.sidebar.subheader("💰 帳戶資金")
-    st.session_state.hedge_shares = st.sidebar.number_input(
+    hedge_shares_input = st.sidebar.number_input(
         "目前持有避險股數", min_value=0, max_value=50000,
-        value=st.session_state.hedge_shares, step=10,
+        step=10, key="hedge_shares_input",
         help="你目前為了對沖而持有的現股數量"
     )
-    st.session_state.cash_balance = st.sidebar.number_input(
+    cash_balance_input = st.sidebar.number_input(
         "可用現金餘額", min_value=0.0,
-        value=st.session_state.cash_balance, step=100.0, format="%.2f",
+        step=100.0, format="%.2f", key="cash_balance_input",
     )
+    st.session_state.hedge_shares = int(hedge_shares_input)
+    st.session_state.cash_balance = float(cash_balance_input)
 
     # ── Auto refresh ──
     st.sidebar.divider()
@@ -353,6 +377,9 @@ with st.expander("📝 記錄新交易", expanded=False):
             elif t_action == "SELL":
                 st.session_state.hedge_shares = max(0, st.session_state.hedge_shares - t_quantity)
             st.session_state.cash_balance -= cost
+            st.session_state.hedge_shares_input = st.session_state.hedge_shares
+            st.session_state.cash_balance_input = st.session_state.cash_balance
+            st.session_state.account_input_ticker = ticker
             st.success(f"✅ 紀錄成功: {t_action} {t_quantity} 股 @ ${t_price:.2f}")
             st.rerun()
 
